@@ -1,0 +1,177 @@
+<title>Arkanoid Mickel Arroz</title>
+
+<style>
+  body {
+    background-color: #111;
+    display: flex;
+    justify-content: center;
+  }
+  canvas {
+    border: 4px solid #fff;
+    border-bottom: transparent;
+    background: url(./public/bkg.png) repeat;
+  }
+</style>
+
+<canvas></canvas>
+
+<img
+  id="sprite"
+  src="./public/sprite.png"
+  alt="Arkanoid Sprites"
+  hidden
+/>
+<img
+  id="bricks"
+  src="./public/bricks.png"
+  alt="Arkanoid Bricks"
+  hidden
+/>
+
+<script>
+  const canvas = document.querySelector("canvas");
+
+  const ctx = canvas.getContext("2d");
+
+  // Cargar imagenes
+  const $sprite = document.getElementById("sprite");
+  const $bricks = document.querySelector("bricks");
+
+  // VARIABLES DE LOS ELEMENTOS
+
+  canvas.width = 480;
+  canvas.height = 400;
+
+  // Tamaño de la pelota
+  const ballRadius = 4;
+
+  // Posicion de la pelota
+  let x = canvas.width / 2;
+  let y = canvas.height - 40;
+
+  // Velocidad de la Pelota
+  let dx = 2;
+  let dy = -2;
+
+  const paddleHeight = 10;
+  const paddleWidth = 50;
+
+  let paddleX = (canvas.width - paddleWidth) / 2;
+  let paddleY = canvas.height - paddleHeight - 10;
+
+  let leftPressed = false;
+  let rightPressed = false;
+
+  // FUNCIONES DE DIBUJADO
+  const drawBall = () => {
+    ctx.beginPath();
+    ctx.arc(x, y, ballRadius, 0, Math.PI * 2);
+    ctx.fillStyle = "#fff";
+    ctx.fill();
+    ctx.closePath();
+  };
+
+  const drawPaddle = () => {
+    ctx.beginPath();
+
+    ctx.drawImage(
+      $sprite,
+      29,
+      174,
+      paddleWidth,
+      paddleHeight,
+      paddleX,
+      paddleY,
+      paddleWidth,
+      paddleHeight
+    );
+
+    ctx.closePath();
+  };
+
+  const drawBlock = () => {};
+
+  const drawScore = () => {};
+
+  // FUNCIONES DE MOVIMIENTOS Y COLISIONES
+
+  const ballMovement = () => {
+    // Colision paredes laterales
+    if (x + dx > canvas.width - ballRadius || x + dx < ballRadius) {
+      // Invertir direccion en X
+      dx = -dx;
+    }
+
+    // Colision pared superior
+    if (y + dy < ballRadius) {
+      dy = -dy;
+    }
+
+    if (x > paddleX && x < paddleX + paddleWidth && y + dy > paddleY) {
+      dy = -dy;
+    } else if (y + dy > canvas.height - ballRadius) {
+      dy = -dy;
+      document.location.reload();
+    }
+
+    x += dx;
+    y += dy;
+  };
+
+  const collisionDetection = () => {};
+
+  const cleanCanvas = () => {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+  };
+
+  const initEvent = () => {
+    const keyDownHandler = (event) => {
+      const { key } = event;
+      if (key === "Right" || key === "ArrowRight") {
+        rightPressed = true;
+      } else if (key === "Left" || key === "ArrowLeft") {
+        leftPressed = true;
+      }
+    };
+    const keyUpHandler = (event) => {
+      const { key } = event;
+      if (key === "Right" || key === "ArrowRight") {
+        rightPressed = false;
+      } else if (key === "Left" || key === "ArrowLeft") {
+        leftPressed = false;
+      }
+    };
+    document.addEventListener("keydown", keyDownHandler);
+    document.addEventListener("keyup", keyUpHandler);
+  };
+
+  const paddleMovement = () => {
+    if (leftPressed && paddleX > 0) {
+      paddleX -= 7;
+    } else if (rightPressed && paddleX < canvas.width - paddleWidth) {
+      paddleX += 7;
+    }
+  };
+
+  const draw = () => {
+    cleanCanvas();
+
+    // Apartado de Dibujado de elementos
+    drawBall();
+    drawPaddle();
+    drawBlock();
+    drawScore();
+
+    // Apartado de Movimiento y colisiones
+    collisionDetection();
+    ballMovement();
+    paddleMovement();
+
+    initEvent();
+
+    // Funcion para llamar constantemente y redibujar el canvas
+    window.requestAnimationFrame(draw);
+  };
+
+  draw();
+</script>

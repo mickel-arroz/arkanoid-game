@@ -24,6 +24,15 @@ function App() {
     let dx = 2;
     let dy = -2;
 
+    const paddleHeight = 10;
+    const paddleWidth = 50;
+
+    let paddleX = (canvas.width - paddleWidth) / 2;
+    let paddleY = canvas.height - paddleHeight - 10;
+
+    let leftPressed = false;
+    let rightPressed = false;
+
     // FUNCIONES DE DIBUJADO
     const drawBall = () => {
       ctx.beginPath();
@@ -33,7 +42,9 @@ function App() {
       ctx.closePath();
     };
 
-    const drawPaddle = () => {};
+    const drawPaddle = () => {
+      ctx.fillRect(paddleX, paddleY, paddleWidth, paddleHeight);
+    };
     const drawBlock = () => {};
 
     const ballMovement = () => {
@@ -63,6 +74,29 @@ function App() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
     };
 
+    const initEvent = () => {
+      document.addEventListener("keydown", keyDownHandler);
+      document.addEventListener("keyup", keyUpHandler);
+
+      const keyDownHandler = (event) => {
+        console.log(event.key);
+        const { key } = event;
+        if (key === "Right" || key === "ArrowRight") {
+          rightPressed = true;
+        } else if (key === "Left" || key === "ArrowLeft") {
+          leftPressed = true;
+        }
+      };
+      const keyUpHandler = (event) => {
+        const { key } = event;
+        if (key === "Right" || key === "ArrowRight") {
+          rightPressed = false;
+        } else if (key === "Left" || key === "ArrowLeft") {
+          leftPressed = false;
+        }
+      };
+    };
+
     const draw = () => {
       cleanCanvas();
 
@@ -74,12 +108,14 @@ function App() {
       // Apartado de Movimiento y colisiones
       ballMovement();
 
+      initEvent();
+
       // Funcion para llamar constantemente y redibujar el canvas
       window.requestAnimationFrame(draw);
     };
 
     draw();
-  });
+  }, []);
 
   return <canvas></canvas>;
 }
