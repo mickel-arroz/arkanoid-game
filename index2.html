@@ -8,7 +8,6 @@
   }
   canvas {
     border: 4px solid #fff;
-    border-bottom: transparent;
     background: url(./public/bkg.png) repeat;
   }
 </style>
@@ -35,23 +34,23 @@
 
   // Cargar imagenes
   const $sprite = document.getElementById("sprite");
-  const $bricks = document.querySelector("bricks");
+  const $bricks = document.getElementById("bricks");
 
   // VARIABLES DE LOS ELEMENTOS
 
-  canvas.width = 480;
-  canvas.height = 400;
+  canvas.width = 280;
+  canvas.height = 300;
 
   // Tamaño de la pelota
-  const ballRadius = 4;
+  const ballRadius = 3;
 
   // Posicion de la pelota
   let x = canvas.width / 2;
   let y = canvas.height - 40;
 
   // Velocidad de la Pelota
-  let dx = 2;
-  let dy = -2;
+  let dx = 3;
+  let dy = -1;
 
   const paddleHeight = 10;
   const paddleWidth = 50;
@@ -61,6 +60,38 @@
 
   let leftPressed = false;
   let rightPressed = false;
+
+  // Ladrillos
+  const brickRowCount = 7;
+  const brickColumnCount = 7;
+  const brickWidth = 32;
+  const brickHeight = 16;
+  const brickPadding = 1;
+  const brickOffsetTop = 60;
+  const brickOffsetLeft = 28;
+  const bricks = [];
+
+  const BRICK_STATUS = {
+    DESTROYED: 0,
+    ACTIVE: 1,
+  };
+
+  for (let c = 0; c < brickColumnCount; c++) {
+    bricks[c] = [];
+    for (let r = 0; r < brickRowCount; r++) {
+      const brickX = c * (brickWidth + brickPadding) + brickOffsetLeft;
+      const brickY = r * (brickHeight + brickPadding) + brickOffsetTop;
+
+      const random = Math.floor(Math.random() * 8);
+
+      bricks[c][r] = {
+        x: brickX,
+        y: brickY,
+        status: BRICK_STATUS.ACTIVE,
+        color: random,
+      };
+    }
+  }
 
   // FUNCIONES DE DIBUJADO
   const drawBall = () => {
@@ -89,7 +120,28 @@
     ctx.closePath();
   };
 
-  const drawBlock = () => {};
+  const drawBricks = () => {
+    for (let c = 0; c < brickColumnCount; c++) {
+      for (let r = 0; r < brickRowCount; r++) {
+        const currentBrick = bricks[c][r];
+        if (currentBrick.status === BRICK_STATUS.DESTROYED) continue;
+
+        const clipX = currentBrick.color * 32;
+
+        ctx.drawImage(
+          $bricks,
+          clipX,
+          0,
+          32,
+          16,
+          currentBrick.x,
+          currentBrick.y,
+          brickWidth,
+          brickHeight
+        );
+      }
+    }
+  };
 
   const drawScore = () => {};
 
@@ -107,9 +159,13 @@
       dy = -dy;
     }
 
-    if (x > paddleX && x < paddleX + paddleWidth && y + dy > paddleY) {
+    if (
+      x + ballRadius > paddleX &&
+      x + ballRadius < paddleX + paddleWidth &&
+      y + ballRadius + dy > paddleY
+    ) {
       dy = -dy;
-    } else if (y + dy > canvas.height - ballRadius) {
+    } else if (y + ballRadius + dy > canvas.height - ballRadius) {
       dy = -dy;
       document.location.reload();
     }
@@ -118,7 +174,27 @@
     y += dy;
   };
 
-  const collisionDetection = () => {};
+  const collisionDetection = () => {
+    for (let c = 0; c < brickColumnCount; c++) {
+      for (let r = 0; r < brickRowCount; r++) {
+        const currentBrick = bricks[c][r];
+        if (currentBrick.status === BRICK_STATUS.DESTROYED) continue;
+
+        const isBallSameXAsBrick =
+          x + ballRadius > currentBrick.x - brickPadding &&
+          x - ballRadius < currentBrick.x + brickWidth;
+
+        const isBallSameYAsBrick =
+          y + ballRadius > currentBrick.y &&
+          y - ballRadius < currentBrick.y + brickHeight;
+
+        if (isBallSameXAsBrick && isBallSameYAsBrick) {
+          dy = -dy;
+          currentBrick.status = BRICK_STATUS.DESTROYED;
+        }
+      }
+    }
+  };
 
   const cleanCanvas = () => {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -146,10 +222,10 @@
   };
 
   const paddleMovement = () => {
-    if (leftPressed && paddleX > 0) {
-      paddleX -= 7;
-    } else if (rightPressed && paddleX < canvas.width - paddleWidth) {
-      paddleX += 7;
+    if (leftPressed && paddleX > 3) {
+      paddleX -= 6;
+    } else if (rightPressed && paddleX < canvas.width - paddleWidth - 3) {
+      paddleX += 6;
     }
   };
 
@@ -159,7 +235,7 @@
     // Apartado de Dibujado de elementos
     drawBall();
     drawPaddle();
-    drawBlock();
+    drawBricks();
     drawScore();
 
     // Apartado de Movimiento y colisiones
@@ -172,6 +248,8 @@
     // Funcion para llamar constantemente y redibujar el canvas
     window.requestAnimationFrame(draw);
   };
+
+  ctx.closePath();
 
   draw();
 </script>
